@@ -2718,9 +2718,9 @@ vetcd3::~vetcd3()
 }
 
 #ifdef _MSC_VER
-DWORD WINAPI vetcd3_hyperfix_recv(LPVOID param)
+DWORD WINAPI vetcd3_thr_recv(LPVOID param)
 #else
-void* vetcd3_hyperfix_recv(void* param)
+void* vetcd3_thr_recv(void* param)
 #endif
 {
     vetcd3* _this = (vetcd3*)param;
@@ -2847,7 +2847,7 @@ bool vetcd3::connect(const std::string& str, std::string& serr)
     }
     svr_frame_size_ = pss.get(0x05, 7 * 1024 * 1024);
 #ifdef _MSC_VER
-    tid_ = CreateThread(NULL, 0, vetcd3_hyperfix_recv, this, 0, NULL);
+    tid_ = CreateThread(NULL, 0, vetcd3_thr_recv, this, 0, NULL);
     if (tid_ == INVALID_HANDLE_VALUE)
     {
         closesocket(sock_);
@@ -3254,8 +3254,8 @@ int vetcd3::del(const std::string& skey, std::string& serr)
 
 int vetcd3::ls_all(std::vector<vetcd_keyvalue>& arrout, std::string& serr)
 {
-    //TODO: etcd ²»Ö§³ÖÊÚÈ¨ËùÓĞkeyµ½½ÇÉ«, ""Õâ¸öÎŞ·¨ÊÚÈ¨, ¿ªÆôÈÏÖ¤µÄÊ±ºò¾Í²é²»µ½ÁË
-    // Ò»¸ö·½Ê½ÊÇ°Ñroot½ÇÉ«ÊÚÈ¨¸øÆÕÍ¨ÓÃ»§
+    //TODO: etcd ä¸æ”¯æŒæˆæƒæ‰€æœ‰keyåˆ°è§’è‰², ""è¿™ä¸ªæ— æ³•æˆæƒ, å¼€å¯è®¤è¯çš„æ—¶å€™å°±æŸ¥ä¸åˆ°äº†
+    // ä¸€ä¸ªæ–¹å¼æ˜¯æŠŠrootè§’è‰²æˆæƒç»™æ™®é€šç”¨æˆ·
     // etcd3 i have not find the way support grant path "" for role, so can not ls all key for admin
     // we assume user grant key at least with prefix /
     int ret = ls_prefix("", arrout, serr);
@@ -3346,7 +3346,7 @@ int vetcd3::watch(const std::string& skey, void* cb, void* cbdata, int64_t& watc
     header_stream hss(data, (int)streamid);
     hss.fill_item(":path", "/etcdserverpb.Watch/Watch");
     hss.fill_item("content-type", "application/grpc");
-    if (!stoken_.empty()) hss.fill_item("token", stoken_); // Èç¹ûÃ»ÓĞÈ¨ÏŞ, watch»áÊ§°Ü, µ«ÊÇ·µ»ØµÄcodeÊÇ 0, Ã»ÓĞ´íÎóĞÅÏ¢?
+    if (!stoken_.empty()) hss.fill_item("token", stoken_); // å¦‚æœæ²¡æœ‰æƒé™, watchä¼šå¤±è´¥, ä½†æ˜¯è¿”å›çš„codeæ˜¯ 0, æ²¡æœ‰é”™è¯¯ä¿¡æ¯?
     //hss.fill_item("grpc-accept-encoding", "identity");
     //hss.fill_item("accept-encoding", "identity");
     len = hss.fill_over();
